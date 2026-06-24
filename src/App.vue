@@ -81,6 +81,7 @@ function handleKeydown(e) {
 }
 
 onMounted(() => {
+  store.recalculateKPI() // 首次加载：触发工厂状态判定 + 预警引擎 + 信用分布同步
   handleResize()
   window.addEventListener('resize', handleResize)
   window.addEventListener('keydown', handleKeydown)

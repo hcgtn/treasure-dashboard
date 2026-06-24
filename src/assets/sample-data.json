@@ -3,16 +3,18 @@
     "totalValue": 12000,
     "totalCredit": 50000,
     "totalWeight": 860.5,
-    "alertRed": 2,
-    "alertYellow": 5
+    "alertRed": 0,
+    "alertYellow": 0
   },
   "factories": [
-    { "id": "A", "name": "工厂A", "goldWater": 120, "goldBar": 85, "finished": 45, "creditScore": 88, "creditLevel": "AA", "status": "normal" },
-    { "id": "B", "name": "工厂B", "goldWater": 95, "goldBar": 110, "finished": 60, "creditScore": 72, "creditLevel": "A", "status": "warning" },
-    { "id": "C", "name": "工厂C", "goldWater": 150, "goldBar": 70, "finished": 35, "creditScore": 92, "creditLevel": "AAA", "status": "normal" },
-    { "id": "D", "name": "工厂D", "goldWater": 80, "goldBar": 55, "finished": 90, "creditScore": 65, "creditLevel": "B", "status": "danger" },
-    { "id": "E", "name": "工厂E", "goldWater": 135, "goldBar": 95, "finished": 50, "creditScore": 85, "creditLevel": "AA", "status": "normal" },
-    { "id": "F", "name": "工厂F", "goldWater": 105, "goldBar": 100, "finished": 55, "creditScore": 78, "creditLevel": "A", "status": "warning" }
+    { "id": "A", "name": "工厂A", "goldWater": 180, "goldBar": 20, "finished": 10, "creditScore": 88, "creditLevel": "AA", "status": "normal" },
+    { "id": "B", "name": "工厂B", "goldWater": 47, "goldBar": 48, "finished": 55, "creditScore": 72, "creditLevel": "A", "status": "normal" },
+    { "id": "C", "name": "工厂C", "goldWater": 95, "goldBar": 0, "finished": 65, "creditScore": 55, "creditLevel": "C", "status": "normal" },
+    { "id": "D", "name": "工厂D", "goldWater": 120, "goldBar": 100, "finished": 130, "creditScore": 90, "creditLevel": "AAA", "status": "normal" },
+    { "id": "E", "name": "工厂E", "goldWater": 40, "goldBar": 30, "finished": 30, "creditScore": 95, "creditLevel": "AAA", "status": "normal" },
+    { "id": "F", "name": "工厂F", "goldWater": 0, "goldBar": 55, "finished": 45, "creditScore": 68, "creditLevel": "B", "status": "normal" },
+    { "id": "G", "name": "工厂G", "goldWater": 55, "goldBar": 155, "finished": 40, "creditScore": 45, "creditLevel": "C", "status": "normal" },
+    { "id": "H", "name": "工厂H", "goldWater": 90, "goldBar": 85, "finished": 80, "creditScore": 78, "creditLevel": "A", "status": "normal" }
   ],
   "trendData": {
     "dates": ["01/20", "01/21", "01/22", "01/23", "01/24", "01/25", "01/26"],
@@ -20,18 +22,12 @@
     "goldBar": [510, 515, 520, 518, 522, 530, 525],
     "finished": [330, 335, 338, 340, 342, 345, 350]
   },
-  "alerts": [
-    { "id": 1, "factoryId": "B", "title": "工厂B 金水含金量偏差超标", "level": "red", "time": "2025-01-26 14:30", "theoryValue": "100g/L", "actualValue": "98g/L", "deviation": "-2.0%", "status": "pending", "handler": "", "conclusion": "" },
-    { "id": 2, "factoryId": "D", "title": "工厂D 成品库存超警戒线", "level": "red", "time": "2025-01-26 11:15", "theoryValue": "80kg", "actualValue": "90kg", "deviation": "+12.5%", "status": "processing", "handler": "张监管员", "conclusion": "" },
-    { "id": 3, "factoryId": "F", "title": "工厂F 金块入库延迟预警", "level": "yellow", "time": "2025-01-26 09:00", "theoryValue": "当日应入库", "actualValue": "未入库", "deviation": "-", "status": "pending", "handler": "", "conclusion": "" },
-    { "id": 4, "factoryId": "A", "title": "工厂A 金水周转率下降", "level": "yellow", "time": "2025-01-25 17:20", "theoryValue": "≥85%", "actualValue": "78%", "deviation": "-7%", "status": "resolved", "handler": "李核查员", "conclusion": "工厂排产调整，已恢复正常" },
-    { "id": 5, "factoryId": "B", "title": "工厂B 夜间库存异常波动", "level": "yellow", "time": "2025-01-25 03:45", "theoryValue": "波动≤5%", "actualValue": "波动8.3%", "deviation": "+3.3%", "status": "processing", "handler": "王监管员", "conclusion": "" }
-  ],
+  "alerts": [],
   "creditDistribution": [
-    { "level": "AAA", "count": 1 },
-    { "level": "AA", "count": 2 },
+    { "level": "AAA", "count": 2 },
+    { "level": "AA", "count": 1 },
     { "level": "A", "count": 2 },
     { "level": "B", "count": 1 },
-    { "level": "C", "count": 0 }
+    { "level": "C", "count": 2 }
   ]
 }

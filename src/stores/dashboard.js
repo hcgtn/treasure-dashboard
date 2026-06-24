@@ -46,11 +46,154 @@ export const useDashboardStore = defineStore('dashboard', {
   },
 
   actions: {
+    // ============================================================
+    // 核心：预警规则引擎 —— 根据工厂实时数据自动生成预警
+    // ============================================================
+    generateAlerts() {
+      const now = new Date()
+      const fmt = (d) => d.toLocaleString('zh-CN')
+      const newAlerts = []
+
+      const addAlert = (factory, title, level, theoryVal, actualVal, deviation) => {
+        newAlerts.push({
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+          factoryId: factory.id,
+          title,
+          level,
+          time: fmt(now),
+          theoryValue: theoryVal,
+          actualValue: actualVal,
+          deviation,
+          status: 'pending',
+          handler: '',
+          conclusion: ''
+        })
+      }
+
+      this.factories.forEach(f => {
+        const total = f.goldWater + f.goldBar + f.finished
+
+        // ---------- 规则1：库存总量预警 ----------
+        if (total > 200) {
+          addAlert(f,
+            `${f.name} 库存总量超警戒线`,
+            'red',
+            '≤200kg',
+            `${total}kg`,
+            `+${((total / 200 - 1) * 100).toFixed(1)}%`
+          )
+        } else if (total > 150) {
+          addAlert(f,
+            `${f.name} 库存总量接近警戒线`,
+            'yellow',
+            '≤200kg',
+            `${total}kg`,
+            `${((total / 200 - 1) * 100).toFixed(1)}%`
+          )
+        }
+
+        // ---------- 规则2：信用评分预警 ----------
+        if (f.creditScore < 60) {
+          addAlert(f,
+            `${f.name} 信用评分过低`,
+            'red',
+            '≥60分',
+            `${f.creditScore}分`,
+            `-${60 - f.creditScore}分`
+          )
+        } else if (f.creditScore < 75) {
+          addAlert(f,
+            `${f.name} 信用评分偏低`,
+            'yellow',
+            '≥75分',
+            `${f.creditScore}分`,
+            `-${75 - f.creditScore}分`
+          )
+        }
+
+        // ---------- 规则3：单品类占比失衡 ----------
+        const categories = [
+          { name: '金水', val: f.goldWater },
+          { name: '金块', val: f.goldBar },
+          { name: '成品', val: f.finished }
+        ]
+        if (total > 0) {
+          categories.forEach(c => {
+            const ratio = c.val / total
+            if (ratio > 0.6) {
+              addAlert(f,
+                `${f.name} ${c.name}库存占比过高`,
+                'yellow',
+                '占比≤60%',
+                `${(ratio * 100).toFixed(1)}%`,
+                `+${((ratio - 0.6) * 100).toFixed(1)}%`
+              )
+            }
+          })
+        }
+
+        // ---------- 规则4：品类缺失预警 ----------
+        categories.forEach(c => {
+          if (c.val === 0) {
+            addAlert(f,
+              `${f.name} ${c.name}库存缺失`,
+              'yellow',
+              '>0kg',
+              '0kg',
+              '缺失'
+            )
+          }
+        })
+      })
+
+      this.alerts = newAlerts
+
+      // 同步更新 factoryAlerts 映射表，供 FactoryDetailModal 使用
+      this.factoryAlerts = {}
+      newAlerts.forEach(a => {
+        if (!this.factoryAlerts[a.factoryId]) {
+          this.factoryAlerts[a.factoryId] = []
+        }
+        this.factoryAlerts[a.factoryId].push(a)
+      })
+    },
+
+    // ============================================================
+    // 统一重算入口：工厂状态 → KPI → 信用分布 → 预警生成
+    // ============================================================
     recalculateKPI() {
+      // 1. 根据实际数据动态判定工厂状态 & 信用等级
+      this.factories.forEach(f => {
+        const total = f.goldWater + f.goldBar + f.finished
+        if (total > 200 || f.creditScore < 60) {
+          f.status = 'danger'
+        } else if (total > 150 || f.creditScore < 75) {
+          f.status = 'warning'
+        } else {
+          f.status = 'normal'
+        }
+        // 动态重算 creditLevel
+        const s = f.creditScore
+        f.creditLevel = s >= 90 ? 'AAA' : s >= 80 ? 'AA' : s >= 70 ? 'A' : s >= 60 ? 'B' : 'C'
+      })
+
+      // 2. 计算 KPI 数值
       const totalWeight = this.factories.reduce((s, f) => s + f.goldWater + f.goldBar + f.finished, 0)
       this.kpi.totalWeight = Math.round(totalWeight * 10) / 10
-      // 按实时金价（演示用固定值：约 13.95 万元/kg）
       this.kpi.totalValue = Math.round(totalWeight * 13.95)
+
+      // 3. 根据工厂信用等级重算分布
+      const dist = { AAA: 0, AA: 0, A: 0, B: 0, C: 0 }
+      this.factories.forEach(f => {
+        const lv = f.creditLevel || 'A'
+        if (lv in dist) dist[lv]++
+      })
+      this.creditDistribution = Object.entries(dist).map(([level, count]) => ({ level, count }))
+
+      // 4. 触发预警引擎
+      this.generateAlerts()
+
+      // 5. 同步预警计数到 KPI 卡片
       const { red, yellow } = this.alertCounts
       this.kpi.alertRed = red
       this.kpi.alertYellow = yellow
