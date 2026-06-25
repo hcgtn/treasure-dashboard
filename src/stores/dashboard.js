@@ -264,6 +264,11 @@ export const useDashboardStore = defineStore('dashboard', {
 
     setBankName(name) {
       this.bankName = name
+    },
+
+    setTotalCredit(amount) {
+      this.kpi.totalCredit = amount
+      this.lastUpdateTime = new Date().toLocaleString('zh-CN')
     }
   }
 })

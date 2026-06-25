@@ -44,6 +44,19 @@
             <button class="dm-btn primary" @click="addManual">➕ 添加到列表</button>
           </div>
         </div>
+
+        <!-- 授信额度设置 -->
+        <div class="dm-section">
+          <div class="dm-section-title">⚙️ 授信额度设置</div>
+          <div class="credit-setting-row">
+            <span class="credit-label">总授信额度：</span>
+            <input v-model.number="creditAmount" type="number" min="0" placeholder="输入金额（万元）" class="dm-input credit-input" />
+            <span class="credit-unit">万元</span>
+            <button class="dm-btn primary" @click="saveCredit">💾 保存</button>
+          </div>
+          <div v-if="creditMsg" class="import-msg" :class="creditMsg.type">{{ creditMsg.text }}</div>
+          <div class="credit-current">当前值：<strong>{{ store.kpi.totalCredit?.toLocaleString('zh-CN') ?? '--' }}</strong> 万元</div>
+        </div>
       </div>
     </div>
   </div>
@@ -57,6 +70,9 @@ import * as XLSX from 'xlsx'
 const store = useDashboardStore()
 const fileInput = ref(null)
 const importMsg = ref(null)
+
+const creditAmount = ref(store.kpi.totalCredit || 0)
+const creditMsg = ref(null)
 
 const form = reactive({
   name: '', goldWater: '', goldBar: '', finished: '',
@@ -146,6 +162,18 @@ function addManual() {
   form.name = ''; form.goldWater = ''; form.goldBar = ''
   form.finished = ''; form.creditScore = '70'; form.creditLevel = 'A'
   setTimeout(() => importMsg.value = null, 3000)
+}
+
+function saveCredit() {
+  const amount = Number(creditAmount.value)
+  if (isNaN(amount) || amount <= 0) {
+    creditMsg.value = { type: 'error', text: '❌ 请输入有效的授信额度（大于 0 的数值）' }
+    setTimeout(() => creditMsg.value = null, 3000)
+    return
+  }
+  store.setTotalCredit(amount)
+  creditMsg.value = { type: 'success', text: `✅ 总授信额度已更新为 ${amount.toLocaleString('zh-CN')} 万元` }
+  setTimeout(() => creditMsg.value = null, 3000)
 }
 </script>
 
@@ -252,4 +280,37 @@ function addManual() {
 .dm-input::placeholder { color: var(--text-secondary); opacity: 0.5; }
 
 select.dm-input option { background: #0a1a3a; color: #fff; }
+
+.credit-setting-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.credit-label {
+  font-size: 13px;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.credit-input {
+  width: 160px;
+}
+
+.credit-unit {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.credit-current {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.credit-current strong {
+  color: var(--blue);
+  font-family: var(--font-mono);
+}
 </style>
