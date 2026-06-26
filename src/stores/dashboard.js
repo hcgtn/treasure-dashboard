@@ -10,8 +10,14 @@ export const useDashboardStore = defineStore('dashboard', {
     alerts: JSON.parse(JSON.stringify(defaultData.alerts)),
     creditDistribution: JSON.parse(JSON.stringify(defaultData.creditDistribution)),
     lastUpdateTime: new Date().toLocaleString('zh-CN'),
+    dataLastUpdatedTime: new Date().toLocaleString('zh-CN'),
     bankName: '平安银行深圳分行',
-    factoryAlerts: {} // { factoryId: [alert, ...] }
+    factoryAlerts: {},
+    // 趋势图自动滚动相关
+    trendPool: [],       // 30天预生成数据池
+    trendCursor: 0,      // 当前7天窗口起始位置 (0~23)
+    trendTimer: null,    // 滚动定时器句柄
+
   }),
 
   getters: {
@@ -197,12 +203,17 @@ export const useDashboardStore = defineStore('dashboard', {
       const { red, yellow } = this.alertCounts
       this.kpi.alertRed = red
       this.kpi.alertYellow = yellow
+
+      // 6. 初始化趋势数据池（30天）+ 启动自动滚动
+      this.initTrendPool()
+      this.startTrendAutoScroll()
+
       this.lastUpdateTime = new Date().toLocaleString('zh-CN')
+      this.dataLastUpdatedTime = new Date().toLocaleString('zh-CN')
     },
 
     loadSampleData() {
       this.factories = JSON.parse(JSON.stringify(defaultData.factories))
-      this.trendData = JSON.parse(JSON.stringify(defaultData.trendData))
       this.alerts = JSON.parse(JSON.stringify(defaultData.alerts))
       this.creditDistribution = JSON.parse(JSON.stringify(defaultData.creditDistribution))
       this.recalculateKPI()
@@ -264,11 +275,98 @@ export const useDashboardStore = defineStore('dashboard', {
 
     setBankName(name) {
       this.bankName = name
+      this.dataLastUpdatedTime = new Date().toLocaleString('zh-CN')
     },
 
     setTotalCredit(amount) {
       this.kpi.totalCredit = amount
       this.lastUpdateTime = new Date().toLocaleString('zh-CN')
+      this.dataLastUpdatedTime = new Date().toLocaleString('zh-CN')
+    },
+
+    // ============================================================
+    // 趋势图自动滚动：30天数据池 + 7天滑动窗口
+    // ============================================================
+    initTrendPool() {
+      const baseGoldWater = this.factories.reduce((s, f) => s + f.goldWater, 0) || 100
+      const baseGoldBar = this.factories.reduce((s, f) => s + f.goldBar, 0) || 80
+      const baseFinished = this.factories.reduce((s, f) => s + f.finished, 0) || 60
+      const pool = []
+      const now = new Date()
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(now)
+        d.setDate(d.getDate() - i)
+        const rf = () => 1 + (Math.random() - 0.5) * 0.6
+        pool.push({
+          date: `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`,
+          goldWater: Math.round(baseGoldWater * rf()),
+          goldBar: Math.round(baseGoldBar * rf()),
+          finished: Math.round(baseFinished * rf())
+        })
+      }
+      this.trendPool = pool
+      this.trendCursor = 0
+      this.setTrendWindow(0)
+    },
+
+    setTrendWindow(start) {
+      const end = start + 7
+      if (end > this.trendPool.length) return
+      const slice = this.trendPool.slice(start, end)
+      this.trendData = {
+        dates: slice.map(s => s.date),
+        goldWater: slice.map(s => s.goldWater),
+        goldBar: slice.map(s => s.goldBar),
+        finished: slice.map(s => s.finished)
+      }
+
+    },
+
+    startTrendAutoScroll(intervalMs = 5000) {
+      this.stopTrendAutoScroll()
+      const maxCursor = this.trendPool.length - 7  // 24 for 30-day pool
+      if (maxCursor <= 0) return
+      this.trendTimer = setInterval(() => {
+        this.trendCursor = (this.trendCursor + 1) % (maxCursor + 1)
+        this.setTrendWindow(this.trendCursor)
+        this.lastUpdateTime = new Date().toLocaleString('zh-CN')
+      }, intervalMs)
+    },
+
+    stopTrendAutoScroll() {
+      if (this.trendTimer) {
+        clearInterval(this.trendTimer)
+        this.trendTimer = null
+      }
+    },
+
+    // ============================================================
+    // 动态生成趋势数据：根据 factories 实时数据生成最近7天趋势
+    // ============================================================
+    generateTrendData() {
+      // 计算各品类总和作为基数
+      const baseGoldWater = this.factories.reduce((s, f) => s + f.goldWater, 0)
+      const baseGoldBar = this.factories.reduce((s, f) => s + f.goldBar, 0)
+      const baseFinished = this.factories.reduce((s, f) => s + f.finished, 0)
+
+      const dates = []
+      const goldWater = []
+      const goldBar = []
+      const finished = []
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date()
+        d.setDate(d.getDate() - i)
+        dates.push(`${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`)
+
+        // 上下浮动30%的随机系数 (0.7 ~ 1.3)
+        const randomFactor = () => 1 + (Math.random() - 0.5) * 0.6
+        goldWater.push(Math.round(baseGoldWater * randomFactor()))
+        goldBar.push(Math.round(baseGoldBar * randomFactor()))
+        finished.push(Math.round(baseFinished * randomFactor()))
+      }
+
+      this.trendData = { dates, goldWater, goldBar, finished }
     }
   }
 })

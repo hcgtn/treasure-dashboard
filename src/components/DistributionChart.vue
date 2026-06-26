@@ -6,13 +6,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, inject, onMounted, onUnmounted, computed, watch } from 'vue'
 import * as echarts from 'echarts'
 import { useDashboardStore } from '../stores/dashboard.js'
 
 const store = useDashboardStore()
 const chartRef = ref(null)
+const modals = inject('modals')
 let chart = null
+let updateTimer = null
 
 const assetData = computed(() => store.assetDistribution)
 
@@ -70,13 +72,55 @@ function initChart() {
   })
 }
 
+function updateChart(newData) {
+  if (!chart) return
+  chart.setOption({
+    series: [{
+      data: [
+        { value: newData[0].weight, name: '金水',
+          itemStyle: { color: new echarts.graphic.LinearGradient(0,0,1,0,
+            [{ offset: 0, color: '#ffd700' }, { offset: 1, color: '#ffec99' }]) } },
+        { value: newData[1].weight, name: '金块',
+          itemStyle: { color: new echarts.graphic.LinearGradient(0,0,1,0,
+            [{ offset: 0, color: '#4da6ff' }, { offset: 1, color: '#80c4ff' }]) } },
+        { value: newData[2].weight, name: '成品',
+          itemStyle: { color: new echarts.graphic.LinearGradient(0,0,1,0,
+            [{ offset: 0, color: '#00e676' }, { offset: 1, color: '#69f0ae' }]) } }
+      ]
+    }]
+  })
+}
+
 function handleResize() { chart?.resize() }
 
 onMounted(() => {
   setTimeout(initChart, 300)
   window.addEventListener('resize', handleResize)
 })
+
+// 监听弹窗关闭：显示 loading 1 秒后更新图表
+watch(() => modals.value.dataManage, (val) => {
+  if (!chart) return
+  if (!val) {
+    // 弹窗关闭：显示 loading
+    chart.showLoading({
+      text: '更新中...',
+      color: '#00e5ff',
+      textColor: '#8899bb',
+      maskColor: 'rgba(3, 8, 26, 0.7)',
+      fontSize: 14
+    })
+    // 延迟 1 秒后隐藏 loading 并更新图表
+    clearTimeout(updateTimer)
+    updateTimer = setTimeout(() => {
+      chart.hideLoading()
+      updateChart(assetData.value)
+    }, 1000)
+  }
+})
+
 onUnmounted(() => {
+  clearTimeout(updateTimer)
   window.removeEventListener('resize', handleResize)
   chart?.dispose()
 })

@@ -18,25 +18,51 @@
       </div>
     </div>
     <div class="nav-center">
-      <span class="bank-label">监管银行：</span>
-      <span class="bank-name">{{ store.bankName }}</span>
+      <span class="nav-clock">{{ currentTime }}</span>
     </div>
     <div class="nav-right">
+      <div class="nav-right-info">
+        <span class="bank-label">监管银行：</span>
+        <span class="bank-name">{{ store.bankName }}</span>
+      </div>
       <div class="update-status">
         <span class="status-dot"></span>
-        <span>数据已更新</span>
+        <div class="update-text">
+          <span>数据已更新</span>
+          <span class="update-time" v-if="!isUpdating">最后更新时间 {{ store.dataLastUpdatedTime }}</span>
+          <span class="update-time updating" v-else>更新中...</span>
+        </div>
       </div>
-      <div class="nav-clock">{{ currentTime }}</div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, inject, onMounted, onUnmounted } from 'vue'
 import { useDashboardStore } from '../stores/dashboard.js'
 
 const store = useDashboardStore()
 const currentTime = ref('')
+const modals = inject('modals')
+
+const isUpdating = ref(false)
+let updateTimer = null
+
+// 监听弹窗状态变化
+import { watch } from 'vue'
+watch(() => modals.value.dataManage, (val) => {
+  if (val) {
+    // 弹窗打开：立即显示"更新中..."
+    clearTimeout(updateTimer)
+    isUpdating.value = true
+  } else {
+    // 弹窗关闭：延迟 1 秒后恢复显示"最后更新时间"
+    clearTimeout(updateTimer)
+    updateTimer = setTimeout(() => {
+      isUpdating.value = false
+    }, 1000)
+  }
+})
 
 let timer = null
 function updateTime() {
@@ -86,6 +112,14 @@ onUnmounted(() => clearInterval(timer))
   background-clip: text;
 }
 
+.nav-right-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 16px;
+  border-right: 1px solid rgba(0, 150, 255, 0.2);
+}
+
 .bank-label {
   font-size: 13px;
   color: var(--text-secondary);
@@ -125,5 +159,35 @@ onUnmounted(() => clearInterval(timer))
   color: var(--cyan);
   letter-spacing: 1px;
   min-width: 190px;
+}
+
+.nav-divider {
+  color: var(--text-secondary);
+  opacity: 0.4;
+  font-size: 16px;
+}
+
+.update-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.update-time {
+  font-size: 11px;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+.update-time.updating {
+  color: var(--yellow);
+  opacity: 1;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 </style>

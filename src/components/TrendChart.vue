@@ -84,10 +84,30 @@ function handleResize() {
 
 onMounted(() => {
   setTimeout(initChart, 200)
+  // 确保趋势图自动滚动已启动（recalculateKPI 也会触发，此处做兜底）
+  setTimeout(() => store.startTrendAutoScroll(), 500)
   window.addEventListener('resize', handleResize)
 })
 
+// 监听 trendData 变化，动态更新图表
+watch(() => store.trendData, (newData) => {
+  if (!chart) return
+  chart.setOption({
+    xAxis: { data: newData.dates },
+    series: [
+      { data: newData.goldWater },
+      { data: newData.goldBar },
+      { data: newData.finished }
+    ],
+    animationDuration: 500,
+    animationDurationUpdate: 800,
+    animationEasing: 'cubicInOut',
+    animationEasingUpdate: 'cubicInOut'
+  })
+}, { deep: true })
+
 onUnmounted(() => {
+  store.stopTrendAutoScroll()
   window.removeEventListener('resize', handleResize)
   chart?.dispose()
 })

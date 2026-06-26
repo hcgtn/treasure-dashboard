@@ -57,6 +57,18 @@
           <div v-if="creditMsg" class="import-msg" :class="creditMsg.type">{{ creditMsg.text }}</div>
           <div class="credit-current">当前值：<strong>{{ store.kpi.totalCredit?.toLocaleString('zh-CN') ?? '--' }}</strong> 万元</div>
         </div>
+
+        <!-- 银行名称设置 -->
+        <div class="dm-section">
+          <div class="dm-section-title">🏦 银行名称设置</div>
+          <div class="credit-setting-row">
+            <span class="credit-label">监管银行：</span>
+            <input v-model="bankName" type="text" placeholder="输入银行名称" class="dm-input bank-input" />
+            <button class="dm-btn primary" @click="saveBankName">💾 保存</button>
+          </div>
+          <div v-if="bankMsg" class="import-msg" :class="bankMsg.type">{{ bankMsg.text }}</div>
+          <div class="credit-current">当前值：<strong>{{ store.bankName }}</strong></div>
+        </div>
       </div>
     </div>
   </div>
@@ -74,7 +86,11 @@ const importMsg = ref(null)
 const creditAmount = ref(store.kpi.totalCredit || 0)
 const creditMsg = ref(null)
 
+const bankName = ref(store.bankName || '')
+const bankMsg = ref(null)
+
 const form = reactive({
+
   name: '', goldWater: '', goldBar: '', finished: '',
   creditScore: '70', creditLevel: 'A'
 })
@@ -174,6 +190,18 @@ function saveCredit() {
   store.setTotalCredit(amount)
   creditMsg.value = { type: 'success', text: `✅ 总授信额度已更新为 ${amount.toLocaleString('zh-CN')} 万元` }
   setTimeout(() => creditMsg.value = null, 3000)
+}
+
+function saveBankName() {
+  const name = bankName.value.trim()
+  if (!name) {
+    bankMsg.value = { type: 'error', text: '❌ 请输入银行名称' }
+    setTimeout(() => bankMsg.value = null, 3000)
+    return
+  }
+  store.setBankName(name)
+  bankMsg.value = { type: 'success', text: `✅ 监管银行已更新为 ${name}` }
+  setTimeout(() => bankMsg.value = null, 3000)
 }
 </script>
 
@@ -296,6 +324,10 @@ select.dm-input option { background: #0a1a3a; color: #fff; }
 
 .credit-input {
   width: 160px;
+}
+
+.bank-input {
+  width: 220px;
 }
 
 .credit-unit {
