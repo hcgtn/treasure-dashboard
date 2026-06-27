@@ -1,5 +1,12 @@
 <template>
-  <div class="kpi-row">
+  <div class="kpi-row" style="position: relative;">
+    <!-- 加载动画遮罩（弹窗关闭后 1 秒） -->
+    <div v-if="isLoading" class="kpi-loading-overlay">
+      <dv-loading>
+        <div class="kpi-loading-text">更新中...</div>
+      </dv-loading>
+    </div>
+
     <div
       v-for="card in cards"
       :key="card.key"
@@ -11,14 +18,13 @@
       <div class="kpi-info">
         <div class="kpi-label">{{ card.label }}</div>
         <div class="kpi-value">
-          <span class="kpi-number" :class="{ 'number-gold': card.key === 'value' }">
-            {{ formatValue(card) }}
-          </span>
+          <!-- 数字翻牌器：只有预警数量不用千分位 formatter -->
+          <dv-digital-flop :config="flopConfigs[card.key]" />
           <span class="kpi-unit">{{ card.unit }}</span>
-        </div>
-        <div v-if="card.key === 'alert'" class="alert-sub">
-          <span class="alert-red-dot"></span>红色 {{ store.kpi.alertRed }}
-          <span class="alert-yellow-dot"></span>黄色 {{ store.kpi.alertYellow }}
+          <div v-if="card.key === 'alert'" class="alert-sub">
+            <span class="alert-red-dot"></span>红色 {{ store.kpi.alertRed }}
+            <span class="alert-yellow-dot"></span>黄色 {{ store.kpi.alertYellow }}
+          </div>
         </div>
         <div class="kpi-sub">{{ card.sub }}</div>
       </div>
@@ -31,42 +37,118 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, reactive, watch, inject, onMounted, onUnmounted } from 'vue'
+import { DigitalFlop as DvDigitalFlop, Loading as DvLoading } from '@kjgl77/datav-vue3'
 import { useDashboardStore } from '../stores/dashboard.js'
 
 const store = useDashboardStore()
 const showTip = ref(null)
+const isLoading = ref(false)
+const modals = inject('modals')
+let updateTimer = null
 
-const cards = [{
-  key: 'value', label: '在库总货值', icon: '💰',
-  get value() { return store.kpi.totalValue },
-  unit: '万元', sub: '金块+金水+成品 × 实时金价',
-  color: '#ffd700', glow: 'rgba(255,215,0,0.4)',
-  tip: '在库总货值 = 金块 + 金水 + 成品，按实时国际金价折算'
-}, {
-  key: 'credit', label: '总授信额度', icon: '🏦',
-  get value() { return store.kpi.totalCredit },
-  unit: '万元', sub: '银行对园区工厂总授信',
-  color: '#4da6ff', glow: 'rgba(77,166,255,0.4)',
-  tip: '总授信额度 = 银行批复的各工厂贷款额度之和'
-}, {
-  key: 'weight', label: '在库总重量', icon: '⚖️',
-  get value() { return store.kpi.totalWeight },
-  unit: 'kg', sub: '金块+金水+成品总重',
-  color: '#00e676', glow: 'rgba(0,230,118,0.4)',
-  tip: '在库总重量 = 园区内所有工厂金块、金水、成品重量加总'
-}, {
-  key: 'alert', label: '预警数量', icon: '⚠️',
-  get value() { return store.kpi.alertRed + store.kpi.alertYellow },
-  unit: '条', sub: '待处理预警',
-  color: '#ff5252', glow: 'rgba(255,82,82,0.4)',
-  tip: '红色预警需立即处理，黄色预警需关注'
-}]
-
-function formatValue(card) {
-  if (card.key === 'alert') return card.value
-  return card.value?.toLocaleString('zh-CN') ?? '--'
+/**
+ * 千分位格式化（与用户参考一致）
+ * 例：123456 -> "123,456"
+ */
+function formatter(number) {
+  const numbers = number.toString().split('').reverse()
+  const segs = []
+  while (numbers.length) segs.push(numbers.splice(0, 3).join(''))
+  return segs.join(',').split('').reverse().join('')
 }
+
+/**
+ * 四个卡片的翻牌器配置（reactive 保证对象引用不变，数值变化时有翻牌动画）
+ */
+const flopConfigs = {
+  value: reactive({
+    number: [0],
+    content: '{nt}',
+    formatter,
+    textAlign: 'left',
+    style: { fontSize: 44, fill: '#ffd700' }
+  }),
+  credit: reactive({
+    number: [0],
+    content: '{nt}',
+    textAlign: 'left',
+    formatter,
+    style: { fontSize: 44, fill: '#4da6ff' }
+  }),
+  weight: reactive({
+    number: [0],
+    content: '{nt}',
+    textAlign: 'left',
+    formatter,
+    style: { fontSize: 44, fill: '#00e676' }
+  }),
+  alert: reactive({
+    number: [0],
+    content: '{nt}',
+    textAlign: 'left',
+    style: { fontSize: 44, fill: '#ff5252' }
+  })
+}
+
+/**
+ * 从 Store 刷新翻牌器数值（仅在此函数中更新 number[0]，触发翻牌动画）
+ */
+function refreshFlop() {
+  flopConfigs.value.number[0] = store.kpi.totalValue ?? 0
+  flopConfigs.credit.number[0] = store.kpi.totalCredit ?? 0
+  flopConfigs.weight.number[0] = store.kpi.totalWeight ?? 0
+  flopConfigs.alert.number[0] = (store.kpi.alertRed + store.kpi.alertYellow) ?? 0
+}
+
+// 首次挂载时从 Store 读取初始值
+onMounted(() => {
+  refreshFlop()
+})
+
+// 监听数据管理弹窗关闭 → 显示加载动画 1 秒后翻牌器更新（与资产分布环形图一致）
+watch(() => modals?.value?.dataManage, (val) => {
+  if (val === false) {
+    // 弹窗关闭：显示加载动画（遮罩覆盖翻牌器，旧数值保持不动）
+    isLoading.value = true
+    clearTimeout(updateTimer)
+    updateTimer = setTimeout(() => {
+      refreshFlop()       // 1 秒后翻牌器更新 → 触发翻牌动画
+      isLoading.value = false  // 遮罩消失，用户看到翻牌后的新数值
+    }, 1000)
+  }
+})
+
+onUnmounted(() => {
+  clearTimeout(updateTimer)
+})
+
+const cards = [
+  {
+    key: 'value', label: '在库总货值', icon: '💰',
+    unit: '万元', sub: '金块+金水+成品 × 实时金价',
+    color: '#ffd700', glow: 'rgba(255,215,0,0.4)',
+    tip: '在库总货值 = 金块 + 金水 + 成品，按实时国际金价折算'
+  },
+  {
+    key: 'credit', label: '总授信额度', icon: '🏦',
+    unit: '万元', sub: '银行对园区工厂总授信',
+    color: '#4da6ff', glow: 'rgba(77,166,255,0.4)',
+    tip: '总授信额度 = 银行批复的各工厂贷款额度之和'
+  },
+  {
+    key: 'weight', label: '在库总重量', icon: '⚖️',
+    unit: 'kg', sub: '金块+金水+成品总重',
+    color: '#00e676', glow: 'rgba(0,230,118,0.4)',
+    tip: '在库总重量 = 园区内所有工厂金块、金水、成品重量加总'
+  },
+  {
+    key: 'alert', label: '预警数量', icon: '⚠️',
+    unit: '条', sub: '待处理预警',
+    color: '#ff5252', glow: 'rgba(255,82,82,0.4)',
+    tip: '红色预警需立即处理，黄色预警需关注'
+  }
+]
 </script>
 
 <style scoped>
@@ -80,7 +162,7 @@ function formatValue(card) {
   background: var(--bg-card);
   border: 1px solid var(--border-glow);
   border-radius: 8px;
-  padding: 18px 20px;
+  padding: 8px 16px;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -110,7 +192,12 @@ function formatValue(card) {
 }
 
 .kpi-info {
-  flex: 1;
+    height: 100%;
+    flex-direction: column;
+    justify-content: space-evenly;
+    display: flex;
+    width: calc(100% - 72px);
+
 }
 
 .kpi-label {
@@ -121,21 +208,17 @@ function formatValue(card) {
 
 .kpi-value {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 4px;
+  height: calc(100% - 66px);
+  overflow: hidden;
 }
 
-.kpi-number {
-  font-size: 36px;
-  font-weight: 700;
-  font-family: var(--font-mono);
-  color: var(--accent);
-  text-shadow: 0 0 20px var(--accent-glow);
-  transition: all 0.6s ease;
-}
-
-.kpi-number.number-gold {
-  font-size: 40px;
+.kpi-value :deep(.dv-digital-flop) {
+  height: 65%;
+  display: flex;
+  width: 80%;
+  align-items: center;
 }
 
 .kpi-unit {
@@ -190,4 +273,22 @@ function formatValue(card) {
 .tip-enter-active { transition: all 0.2s; }
 .tip-leave-active { transition: all 0.2s; }
 .tip-enter-from, .tip-leave-to { opacity: 0; transform: translateY(5px); }
+
+/* 弹窗关闭后的加载动画（与资产分布环形图风格一致） */
+.kpi-loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 8, 26, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 8px;
+}
+
+.kpi-loading-text {
+  color: #8899bb;
+  font-size: 14px;
+  letter-spacing: 3px;
+}
 </style>

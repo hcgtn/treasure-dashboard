@@ -1,5 +1,13 @@
 <template>
-  <div class="dashboard-container" :style="{ transform: `scale(${scale})` }">
+  <!-- 加载动画 -->
+  <div v-if="isLoading" class="loading-overlay">
+    <dv-loading>
+      <div class="loading-text">加载中..</div>
+    </dv-loading>
+  </div>
+
+  <!-- 主页面 -->
+  <div v-else class="dashboard-container" :style="{ transform: `scale(${scale})` }">
     <!-- 背景层 -->
     <ParticleBg />
 
@@ -37,6 +45,7 @@
 
 <script setup>
 import { ref, provide, onMounted, onUnmounted } from 'vue'
+import { Loading as DvLoading } from '@kjgl77/datav-vue3'
 import { useDashboardStore } from './stores/dashboard.js'
 import ParticleBg from './components/ParticleBg.vue'
 import TopNav from './components/TopNav.vue'
@@ -52,6 +61,7 @@ import DataManageModal from './components/DataManageModal.vue'
 
 const store = useDashboardStore()
 const scale = ref(1)
+const isLoading = ref(true)
 
 const modals = ref({
   factory: false,
@@ -85,6 +95,10 @@ onMounted(() => {
   handleResize()
   window.addEventListener('resize', handleResize)
   window.addEventListener('keydown', handleKeydown)
+  // 0.5s 后隐藏加载动画
+  setTimeout(() => {
+    isLoading.value = false
+  }, 500)
 })
 
 onUnmounted(() => {
@@ -208,4 +222,21 @@ onUnmounted(() => {
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(0,150,255,0.3); border-radius: 2px; }
+
+/* ========== 加载动画 ========== */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: #03081a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loading-text {
+  color: #fff;
+  font-size: 18px;
+  letter-spacing: 4px;
+}
 </style>
