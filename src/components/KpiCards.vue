@@ -215,7 +215,7 @@ const cards = [
 }
 
 .kpi-value :deep(.dv-digital-flop) {
-  height: 65%;
+  height: 85%;
   display: flex;
   width: 80%;
   align-items: center;

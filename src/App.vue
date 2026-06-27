@@ -77,7 +77,15 @@ provide('selectedAlertId', ref(null))
 function handleResize() {
   const w = window.innerWidth
   const h = window.innerHeight
-  scale.value = Math.min(w / 1920, h / 1080)
+  const s = Math.min(w / 1920, h / 1080)
+  scale.value = s
+
+  // 居中偏移：当屏幕比设计稿宽时，左右居中显示
+  const appEl = document.getElementById('app')
+  if (appEl) {
+    appEl.style.marginLeft = `${(w - 1920 * s) / 2}px`
+    appEl.style.marginTop = `${(h - 1080 * s) / 2}px`
+  }
 }
 
 // 键盘快捷键：Ctrl+Shift+D 打开数据管理
@@ -125,6 +133,15 @@ onUnmounted(() => {
 }
 
 /* ========== 大屏容器 ========== */
+/* ========== 根容器约束（配合 JS 缩放 + 居中） ========== */
+#app {
+  min-width: 1920px;
+  min-height: 1080px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 .dashboard-container {
   position: relative;
   width: 1920px;
