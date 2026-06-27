@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@jiaminghi/data-view": "^2.10.0",
+    "@kjgl77/datav-vue3": "^1.7.4",
     "echarts": "^5.5.0",
     "pinia": "^2.1.7",
     "vue": "^3.4.21",
