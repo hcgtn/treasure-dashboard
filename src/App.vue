@@ -90,7 +90,6 @@ function handleResize() {
 
 // 键盘快捷键：Ctrl+Shift+D 打开数据管理
 function handleKeydown(e) {
-  
   if (e.ctrlKey && e.shiftKey && e.key === 'D') {
     console.log('Ctrl+Shift+D pressed: Toggle Data Management Modal')
     e.preventDefault()
@@ -99,11 +98,10 @@ function handleKeydown(e) {
 }
 
 onMounted(() => {
-  store.recalculateKPI() // 首次加载：触发工厂状态判定 + 预警引擎 + 信用分布同步
+  store.recalculateKPI()
   handleResize()
   window.addEventListener('resize', handleResize)
   window.addEventListener('keydown', handleKeydown)
-  // 0.5s 后隐藏加载动画
   setTimeout(() => {
     isLoading.value = false
   }, 500)
@@ -132,7 +130,6 @@ onUnmounted(() => {
   --font-mono: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', monospace;
 }
 
-/* ========== 大屏容器 ========== */
 /* ========== 根容器约束（配合 JS 缩放 + 居中） ========== */
 #app {
   min-width: 1920px;
@@ -244,7 +241,7 @@ onUnmounted(() => {
 .loading-overlay {
   position: fixed;
   inset: 0;
-  background: #03081a;
+  background: url('/bg.png') center center / cover no-repeat, #03081a;
   display: flex;
   align-items: center;
   justify-content: center;
