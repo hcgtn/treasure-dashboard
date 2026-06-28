@@ -86,6 +86,7 @@ onUnmounted(() => clearInterval(timer))
   height: 100%;
   width: 50%;
   margin: 0 auto;
+  top: 12px;
 }
 
 .top-nav {
@@ -172,12 +173,12 @@ onUnmounted(() => clearInterval(timer))
 
 .nav-clock {
   font-family: var(--font-mono);
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 600;
   color: var(--cyan);
   letter-spacing: 1px;
   min-width: 190px;
-  margin-top: -20px;
+  margin-top: -12px;
 }
 
 .update-text {
