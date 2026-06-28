@@ -1,11 +1,9 @@
 <template>
-  <dv-border-box-6>
     <div class="panel-inner alert-panel">
       <div class="panel-title">🔔 最新预警</div>
       <div class="alert-list" ref="listRef">
         <div
           v-for="alert in store.alerts.slice(0, 5)"
-          :key="alert.id"
           class="alert-item"
           :class="`level-${alert.level}`"
           @click="openAlert(alert)"
@@ -17,12 +15,10 @@
         </div>
       </div>
     </div>
-  </dv-border-box-6>
 </template>
 
 <script setup>
 import { inject, ref, onMounted } from 'vue'
-import { BorderBox6 as DvBorderBox6 } from '@kjgl77/datav-vue3'
 import { useDashboardStore } from '../stores/dashboard.js'
 
 const store = useDashboardStore()
@@ -55,8 +51,7 @@ onMounted(() => autoScroll())
 
 <style scoped>
 .panel-inner {
-  padding: 12px 16px;
-  height: 100%;
+  padding: 12px 16px 0 16px; height: calc(100% - 6px);
   display: flex;
   flex-direction: column;
   overflow: hidden;

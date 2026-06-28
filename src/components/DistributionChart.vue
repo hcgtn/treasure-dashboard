@@ -80,7 +80,7 @@ function initChart() {
 
   const data = assetData.value
   chart.setOption({
-    backgroundColor: 'rgba(6, 30, 93, .5)',
+    backgroundColor: 'rgba(6, 30, 93, .2)',
     tooltip: {
       trigger: 'item',
       backgroundColor: 'rgba(6,20,50,0.95)',
@@ -149,7 +149,7 @@ function updateChart(newData) {
   if (!chart) return
   chart.setOption({
     graphic: makeCenterGraphic(newData),
-    backgroundColor: 'rgba(6, 30, 93, .5)',
+    backgroundColor: 'rgba(6, 30, 93, .2)',
     series: [{
       data: [
         {
@@ -226,7 +226,7 @@ onUnmounted(() => {
 
 .border-warp {
   height: calc(100% - 38px);
-  padding: 12px 0px;
+  padding: 12px 6px 4px 6px;
   position: relative;
 }
 

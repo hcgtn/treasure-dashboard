@@ -20,13 +20,13 @@
           <TrendChart />
           <DistributionChart />
         </div>
-        <!-- <div class="bottom-row">
+        <div class="bottom-row">
             <FactoryTable />
             <div class="bottom-right">
               <AlertList />
               <CreditChart />
             </div>
-          </div> -->
+          </div>
       </div>
     </dv-border-box1>
 
@@ -147,8 +147,8 @@ onUnmounted(() => {
   position: relative;
   width: 1920px;
   height: 1080px;
-  width: 100%;
-  height: 100%;
+  /* width: 100%;
+  height: 100%; */
 
   transform-origin: left top;
   background: radial-gradient(ellipse at 50% 0%, #0a1a3a 0%, #03081a 60%);
@@ -186,7 +186,7 @@ onUnmounted(() => {
 .bottom-right {
   display: grid;
   grid-template-rows: 1fr 1fr;
-  gap: 12px;
+  gap: 0px;
 }
 
 /* ========== 免责声明 ========== */

@@ -1,16 +1,13 @@
 <template>
-  <dv-border-box-9>
     <div class="panel-inner chart-panel">
       <div class="panel-title">📊 信用评分分布</div>
       <div ref="chartRef" class="chart-body"></div>
     </div>
-  </dv-border-box-9>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
-import { BorderBox9 as DvBorderBox9 } from '@kjgl77/datav-vue3'
 import { useDashboardStore } from '../stores/dashboard.js'
 
 const store = useDashboardStore()
@@ -75,7 +72,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.panel-inner { padding: 12px 16px; height: 100%; }
+.panel-inner { padding: 12px 16px 0 16px; height: calc(100% - 6px); }
 .panel-title { font-size: 15px; font-weight: 600; color: var(--cyan); margin-bottom: 8px; letter-spacing: 2px; }
 .chart-panel { height: 100%; }
 .chart-body { width: 100%; height: calc(100% - 30px); }

@@ -1,6 +1,5 @@
 <template>
   <div class="top-nav-wrap">
-    <dv-decoration-5 class="nav-decoration" />
     <div class="top-nav">
       <div class="nav-left">
         <div class="logo-area">
@@ -20,7 +19,12 @@
         </div>
       </div>
       <div class="nav-center">
-        <span class="nav-clock">{{ currentTime }}</span>
+
+        <dv-decoration-11 style="width:400px;height:60px;">
+          <div color-green font-600 bg="~ dark/0" class="nav-clock">
+            {{currentTime }}
+          </div>
+        </dv-decoration-11>
       </div>
       <div class="nav-right">
         <div class="nav-right-info">
@@ -44,6 +48,7 @@
 import { ref, inject, onMounted, onUnmounted } from 'vue'
 import { Decoration5 as DvDecoration5 } from '@kjgl77/datav-vue3'
 import { useDashboardStore } from '../stores/dashboard.js'
+import { Decoration11 as DvDecoration11 } from '@kjgl77/datav-vue3'
 
 const store = useDashboardStore()
 const currentTime = ref('')
@@ -73,20 +78,6 @@ onUnmounted(() => clearInterval(timer))
 .top-nav-wrap {
   position: relative;
   overflow: hidden;
-}
-
-.nav-decoration {
-  position: absolute;
-  top: 0px;
-  left: 0;
-  right: 0;
-  height: 40px;
-  z-index: 0;
-  pointer-events: none;
-  height: 100%;
-  width: 50%;
-  margin: 0 auto;
-  top: 12px;
 }
 
 .top-nav {
@@ -173,12 +164,10 @@ onUnmounted(() => clearInterval(timer))
 
 .nav-clock {
   font-family: var(--font-mono);
-  font-size: 26px;
-  font-weight: 600;
-  color: var(--cyan);
+  font-size: 24px;
+  color: #4ade80;
   letter-spacing: 1px;
   min-width: 190px;
-  margin-top: -12px;
 }
 
 .update-text {

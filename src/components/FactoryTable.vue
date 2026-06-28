@@ -1,7 +1,9 @@
 <template>
-  <dv-border-box-8>
     <div class="panel-inner table-panel">
-      <div class="panel-title">🏭 各工厂实时库存明细</div>
+      <div class="panel-title">
+        <div>🏭 各工厂实时库存明细</div>
+        <dv-decoration6 style="width:250px;height:30px;" />
+      </div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -35,13 +37,12 @@
         </table>
       </div>
     </div>
-  </dv-border-box-8>
 </template>
 
 <script setup>
 import { inject } from 'vue'
-import { BorderBox8 as DvBorderBox8 } from '@kjgl77/datav-vue3'
 import { useDashboardStore } from '../stores/dashboard.js'
+import { Decoration6 as DvDecoration6 } from '@kjgl77/datav-vue3'
 
 const store = useDashboardStore()
 const modals = inject('modals')
@@ -70,7 +71,7 @@ function openDetail(f) {
 }
 
 .panel-inner {
-  padding: 12px 16px;
+  padding: 0px 16px;
   height: calc(100% - 38px);
   display: flex;
   flex-direction: column;

@@ -1,11 +1,13 @@
 <template>
-    <div class="panel-inner chart-panel" ref="containerRef">
-      <div class="panel-title">
-        <div>📈 近7天库存趋势</div>
-         <dv-decoration3 style="width:250px;height:30px;"/>
-      </div>
-      <div ref="chartRef" class="chart-body"></div>
+  <div class="panel-inner chart-panel" ref="containerRef">
+    <div class="panel-title">
+      <div>📈 近7天库存趋势</div>
+      <dv-decoration3 style="width:250px;height:30px;" />
     </div>
+    <dv-border-box13 class="border-warp">
+      <div ref="chartRef" class="chart-body"></div>
+    </dv-border-box13>
+  </div>
 </template>
 
 <script setup>
@@ -13,6 +15,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import * as echarts from 'echarts'
 import { useDashboardStore } from '../stores/dashboard.js'
 import { Decoration3 as DvDecoration3 } from '@kjgl77/datav-vue3'
+import { BorderBox13 as DvBorderBox13 } from '@kjgl77/datav-vue3'
 
 const store = useDashboardStore()
 const chartRef = ref(null)
@@ -24,6 +27,7 @@ function initChart() {
   chart = echarts.init(chartRef.value, 'dark')
 
   chart.setOption({
+    backgroundColor: 'rgba(6, 30, 93, .2)',
     tooltip: {
       trigger: 'axis',
       backgroundColor: 'rgba(6,20,50,0.95)',
@@ -56,24 +60,30 @@ function initChart() {
         smooth: true, symbol: 'circle', symbolSize: 6,
         lineStyle: { color: '#ffd700', width: 2 },
         itemStyle: { color: '#ffd700' },
-        areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,
-          [{ offset: 0, color: 'rgba(255,215,0,0.3)' }, { offset: 1, color: 'rgba(255,215,0,0.02)' }]) }
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1,
+            [{ offset: 0, color: 'rgba(255,215,0,0.3)' }, { offset: 1, color: 'rgba(255,215,0,0.02)' }])
+        }
       }, {
         name: '金块', type: 'line',
         data: store.trendData.goldBar,
         smooth: true, symbol: 'circle', symbolSize: 6,
         lineStyle: { color: '#4da6ff', width: 2 },
         itemStyle: { color: '#4da6ff' },
-        areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,
-          [{ offset: 0, color: 'rgba(77,166,255,0.3)' }, { offset: 1, color: 'rgba(77,166,255,0.02)' }]) }
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1,
+            [{ offset: 0, color: 'rgba(77,166,255,0.3)' }, { offset: 1, color: 'rgba(77,166,255,0.02)' }])
+        }
       }, {
         name: '成品', type: 'line',
         data: store.trendData.finished,
         smooth: true, symbol: 'circle', symbolSize: 6,
         lineStyle: { color: '#00e676', width: 2 },
         itemStyle: { color: '#00e676' },
-        areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,
-          [{ offset: 0, color: 'rgba(0,230,118,0.3)' }, { offset: 1, color: 'rgba(0,230,118,0.02)' }]) }
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1,
+            [{ offset: 0, color: 'rgba(0,230,118,0.3)' }, { offset: 1, color: 'rgba(0,230,118,0.02)' }])
+        }
       }
     ],
     animationEasing: 'elasticOut',
@@ -115,10 +125,28 @@ onUnmounted(() => {
   padding: 12px 16px;
   height: 100%;
 }
+
 .panel-title {
-  font-size: 15px; font-weight: 600; color: var(--cyan);
-  margin-bottom: 8px; letter-spacing: 2px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cyan);
+  margin-bottom: 8px;
+  letter-spacing: 2px;
 }
-.chart-panel { height: 100%; }
-.chart-body { width: 100%; height: calc(100% - 30px); }
+
+.chart-panel {
+  height: 100%;
+}
+
+.chart-body {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+}
+
+.border-warp {
+  height: calc(100% - 38px);
+  padding: 12px 6px 4px 6px;
+  position: relative;
+}
 </style>
