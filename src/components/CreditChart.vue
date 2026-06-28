@@ -1,33 +1,36 @@
 <template>
     <div class="panel-inner chart-panel">
-      <div class="panel-title">📊 信用评分分布</div>
+      <div class="panel-title">
+        <div>📊 信用评分分布</div>
+        <dv-decoration2 :dur="2" style="width:200px;height:5px;" />
+      </div>
       <div ref="chartRef" class="chart-body"></div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, inject, watch, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
 import { useDashboardStore } from '../stores/dashboard.js'
+import { Decoration2 as DvDecoration2 } from '@kjgl77/datav-vue3'
 
 const store = useDashboardStore()
 const chartRef = ref(null)
+const modals = inject('modals')
 let chart = null
+let updateTimer = null
 
-function initChart() {
-  if (!chartRef.value) return
-  chart = echarts.init(chartRef.value, 'dark')
-  const data = store.creditDistribution
+function buildOption(data) {
   const colors = { 'AAA': '#32c5e9', 'AA': '#a0e6b9', 'A': '#ffdc5c', 'B': '#ffa07f', 'C': '#fb7293' }
-
-  chart.setOption({
+  return {
+    backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis',
       backgroundColor: 'rgba(6,20,50,0.95)',
       borderColor: 'rgba(0,150,255,0.5)',
       textStyle: { color: '#e0ecff' }
     },
-    grid: { left: '12%', right: '8%', top: '5%', bottom: '5%' },
+    grid: { left: '4%', right: '16%', top: '5%', bottom: '5%' },
     xAxis: {
       type: 'value', name: '家',
       axisLine: { show: false }, axisTick: { show: false },
@@ -56,7 +59,18 @@ function initChart() {
       label: { show: true, position: 'right', color: '#e0ecff', fontSize: 13, fontWeight: 'bold' }
     }],
     animationDuration: 1000
-  })
+  }
+}
+
+function initChart() {
+  if (!chartRef.value) return
+  chart = echarts.init(chartRef.value)
+  chart.setOption(buildOption(store.creditDistribution))
+}
+
+function updateChart() {
+  if (!chart) return
+  chart.setOption(buildOption(store.creditDistribution), true)
 }
 
 function handleResize() { chart?.resize() }
@@ -65,7 +79,18 @@ onMounted(() => {
   setTimeout(initChart, 400)
   window.addEventListener('resize', handleResize)
 })
+
+watch(() => modals.value.dataManage, (val) => {
+  if (!chart) return
+  if (!val) {
+    chart.showLoading({ text: '更新中...', color: '#00e5ff', textColor: '#8899bb', maskColor: 'rgba(3, 8, 26, 0.7)', fontSize: 14 })
+    clearTimeout(updateTimer)
+    updateTimer = setTimeout(() => { chart.hideLoading(); updateChart() }, 1000)
+  }
+})
+
 onUnmounted(() => {
+  clearTimeout(updateTimer)
   window.removeEventListener('resize', handleResize)
   chart?.dispose()
 })
@@ -73,7 +98,7 @@ onUnmounted(() => {
 
 <style scoped>
 .panel-inner { padding: 12px 16px 0 16px; height: calc(100% - 6px); }
-.panel-title { font-size: 15px; font-weight: 600; color: var(--cyan); margin-bottom: 8px; letter-spacing: 2px; }
+.panel-title { font-size: 15px; font-weight: 600; color: var(--cyan); margin-bottom: 0px !important; letter-spacing: 2px; }
 .chart-panel { height: 100%; }
-.chart-body { width: 100%; height: calc(100% - 30px); }
+.chart-body { width: 100%; height: calc(100% - 48px); }
 </style>

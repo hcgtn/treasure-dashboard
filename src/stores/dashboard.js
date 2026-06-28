@@ -221,6 +221,9 @@ export const useDashboardStore = defineStore('dashboard', {
 
     resetData() {
       this.loadSampleData()
+      // 重置授信额度与银行名称到默认值
+      this.kpi.totalCredit = defaultData.kpi.totalCredit
+      this.bankName = '平安银行深圳分行'
     },
 
     importFromExcel(jsonData) {

@@ -11,16 +11,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, inject, onMounted, onUnmounted, watch } from 'vue'
 import * as echarts from 'echarts'
 import { useDashboardStore } from '../stores/dashboard.js'
 import { Decoration3 as DvDecoration3 } from '@kjgl77/datav-vue3'
 import { BorderBox13 as DvBorderBox13 } from '@kjgl77/datav-vue3'
 
 const store = useDashboardStore()
+const modals = inject('modals')
 const chartRef = ref(null)
 const containerRef = ref(null)
+const dataImportPending = ref(false)
 let chart = null
+let updateTimer = null
 
 function initChart() {
   if (!chartRef.value) return
@@ -93,13 +96,8 @@ function initChart() {
 
 function handleResize() { chart?.resize() }
 
-onMounted(() => {
-  setTimeout(initChart, 200)
-  setTimeout(() => store.startTrendAutoScroll(), 500)
-  window.addEventListener('resize', handleResize)
-})
-
-watch(() => store.trendData, (newData) => {
+/* 从 Store 读取最新数据刷新图表（用于自动滚动等非导入场景） */
+function updateChart(newData) {
   if (!chart) return
   chart.setOption({
     xAxis: { data: newData.dates },
@@ -111,9 +109,40 @@ watch(() => store.trendData, (newData) => {
     animationDuration: 500, animationDurationUpdate: 800,
     animationEasing: 'cubicInOut', animationEasingUpdate: 'cubicInOut'
   })
+}
+
+onMounted(() => {
+  setTimeout(initChart, 200)
+  setTimeout(() => store.startTrendAutoScroll(), 500)
+  window.addEventListener('resize', handleResize)
+})
+
+/* 自动滚动等场景：直接刷新（不经过加载动画） */
+watch(() => store.trendData, (newData) => {
+  if (dataImportPending.value) return  // 导入中 → 等待 modal watch 统一刷新
+  updateChart(newData)
 }, { deep: true })
 
+/* 数据管理弹窗：打开时锁定图表，关闭后 1 秒加载动画再刷新 */
+watch(() => modals.value.dataManage, (val) => {
+  if (!chart) return
+  if (val) {
+    // 弹窗打开 → 锁定，阻止深 watch 在导入期间抢先刷新
+    dataImportPending.value = true
+  } else {
+    // 弹窗关闭 → 展示加载动画，1 秒后统一刷新
+    chart.showLoading({ text: '更新中...', color: '#00e5ff', textColor: '#8899bb', maskColor: 'rgba(3, 8, 26, 0.7)', fontSize: 14 })
+    clearTimeout(updateTimer)
+    updateTimer = setTimeout(() => {
+      chart.hideLoading()
+      updateChart(store.trendData)
+      dataImportPending.value = false
+    }, 1000)
+  }
+})
+
 onUnmounted(() => {
+  clearTimeout(updateTimer)
   store.stopTrendAutoScroll()
   window.removeEventListener('resize', handleResize)
   chart?.dispose()

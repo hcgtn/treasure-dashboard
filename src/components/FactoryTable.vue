@@ -4,7 +4,11 @@
         <div>🏭 各工厂实时库存明细</div>
         <dv-decoration6 style="width:250px;height:30px;" />
       </div>
-      <div class="table-wrap">
+      <div class="table-wrap" style="position:relative;">
+        <div v-if="loading" class="loading-overlay">
+          <div class="loading-spinner"></div>
+          <div class="loading-text">更新中...</div>
+        </div>
         <table class="header-table">
           <colgroup>
             <col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:12%"><col style="width:30%"><col style="width:10%"><col style="width:12%">
@@ -52,7 +56,7 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue'
+import { ref, computed, inject, watch, onUnmounted } from 'vue'
 import { useDashboardStore } from '../stores/dashboard.js'
 import { Decoration6 as DvDecoration6 } from '@kjgl77/datav-vue3'
 
@@ -61,6 +65,16 @@ const modals = inject('modals')
 const selectedFactoryId = inject('selectedFactoryId')
 
 const paused = ref(false)
+const loading = ref(false)
+let loadingTimer = null
+
+watch(() => modals.value.dataManage, (val) => {
+  if (!val) {
+    loading.value = true
+    clearTimeout(loadingTimer)
+    loadingTimer = setTimeout(() => { loading.value = false }, 1000)
+  }
+})
 
 const doubledFactories = computed(() => {
   const list = store.factories
@@ -81,6 +95,8 @@ function openDetail(f) {
   selectedFactoryId.value = f.id
   modals.value.factory = true
 }
+
+onUnmounted(() => { clearTimeout(loadingTimer) })
 </script>
 
 <style scoped>
@@ -188,4 +204,29 @@ function openDetail(f) {
   cursor: pointer; font-size: 12px; transition: all 0.2s;
 }
 .btn-detail:hover { background: rgba(0, 229, 255, 0.15); border-color: var(--cyan); }
+
+/* ===== 加载遮罩 ===== */
+.loading-overlay {
+  position: absolute; inset: 0; z-index: 10;
+  background: rgba(3, 8, 26, 0.7);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  border-radius: 4px;
+}
+
+.loading-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid rgba(0, 229, 255, 0.2);
+  border-top-color: #00e5ff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-text {
+  margin-top: 12px;
+  color: #8899bb;
+  font-size: 14px;
+}
 </style>

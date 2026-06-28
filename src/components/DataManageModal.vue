@@ -103,6 +103,9 @@ function loadSample() {
 
 function resetData() {
   store.resetData()
+  // 同步本地表单到 store 重置后的值
+  creditAmount.value = store.kpi.totalCredit
+  bankName.value = store.bankName
   importMsg.value = { type: 'info', text: '🔄 数据已重置为默认值' }
   setTimeout(() => importMsg.value = null, 3000)
 }
