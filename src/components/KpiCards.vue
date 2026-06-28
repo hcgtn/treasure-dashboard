@@ -17,7 +17,7 @@
       <div class="kpi-icon">{{ card.icon }}</div>
       <div class="kpi-info">
         <div class="kpi-label">{{ card.label }}</div>
-        <div class="kpi-value">
+        <div :class="['kpi-value', card.key === 'alert' ? 'alert-value' : '']">
           <!-- 数字翻牌器：只有预警数量不用千分位 formatter -->
           <dv-digital-flop :config="flopConfigs[card.key]" />
           <span class="kpi-unit">{{ card.unit }}</span>
@@ -159,7 +159,6 @@ const cards = [
 }
 
 .kpi-card {
-  background: var(--bg-card);
   border: 1px solid var(--border-glow);
   border-radius: 8px;
   padding: 8px 16px;
@@ -204,6 +203,7 @@ const cards = [
   font-size: 13px;
   color: var(--text-secondary);
   margin-bottom: 4px;
+  text-align: left;
 }
 
 .kpi-value {
@@ -215,9 +215,15 @@ const cards = [
 }
 
 .kpi-value :deep(.dv-digital-flop) {
-  height: 85%;
+  height: 120%;
   display: flex;
   width: 80%;
+  align-items: center;
+}
+.kpi-value.alert-value :deep(.dv-digital-flop) {
+  height: 85%;
+  display: flex;
+  width: 60%;
   align-items: center;
 }
 
@@ -253,6 +259,7 @@ const cards = [
   color: var(--text-secondary);
   opacity: 0.7;
   margin-top: 2px;
+  text-align: left;
 }
 
 /* 点击提示 */

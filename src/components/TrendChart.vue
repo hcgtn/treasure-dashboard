@@ -1,14 +1,18 @@
 <template>
-  <div class="panel chart-panel" ref="containerRef">
-    <div class="panel-title">📈 近7天库存趋势</div>
-    <div ref="chartRef" class="chart-body"></div>
-  </div>
+    <div class="panel-inner chart-panel" ref="containerRef">
+      <div class="panel-title">
+        <div>📈 近7天库存趋势</div>
+         <dv-decoration3 style="width:250px;height:30px;"/>
+      </div>
+      <div ref="chartRef" class="chart-body"></div>
+    </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import * as echarts from 'echarts'
 import { useDashboardStore } from '../stores/dashboard.js'
+import { Decoration3 as DvDecoration3 } from '@kjgl77/datav-vue3'
 
 const store = useDashboardStore()
 const chartRef = ref(null)
@@ -40,8 +44,7 @@ function initChart() {
       axisLabel: { color: '#8899bb' }
     },
     yAxis: {
-      type: 'value',
-      name: 'kg',
+      type: 'value', name: 'kg',
       nameTextStyle: { color: '#8899bb' },
       splitLine: { lineStyle: { color: 'rgba(0,150,255,0.1)' } },
       axisLabel: { color: '#8899bb' }
@@ -78,18 +81,14 @@ function initChart() {
   })
 }
 
-function handleResize() {
-  chart?.resize()
-}
+function handleResize() { chart?.resize() }
 
 onMounted(() => {
   setTimeout(initChart, 200)
-  // 确保趋势图自动滚动已启动（recalculateKPI 也会触发，此处做兜底）
   setTimeout(() => store.startTrendAutoScroll(), 500)
   window.addEventListener('resize', handleResize)
 })
 
-// 监听 trendData 变化，动态更新图表
 watch(() => store.trendData, (newData) => {
   if (!chart) return
   chart.setOption({
@@ -99,10 +98,8 @@ watch(() => store.trendData, (newData) => {
       { data: newData.goldBar },
       { data: newData.finished }
     ],
-    animationDuration: 500,
-    animationDurationUpdate: 800,
-    animationEasing: 'cubicInOut',
-    animationEasingUpdate: 'cubicInOut'
+    animationDuration: 500, animationDurationUpdate: 800,
+    animationEasing: 'cubicInOut', animationEasingUpdate: 'cubicInOut'
   })
 }, { deep: true })
 
@@ -114,6 +111,14 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.panel-inner {
+  padding: 12px 16px;
+  height: 100%;
+}
+.panel-title {
+  font-size: 15px; font-weight: 600; color: var(--cyan);
+  margin-bottom: 8px; letter-spacing: 2px;
+}
 .chart-panel { height: 100%; }
 .chart-body { width: 100%; height: calc(100% - 30px); }
 </style>

@@ -12,21 +12,23 @@
     <ParticleBg />
 
     <!-- 主内容区 -->
-    <div class="main-content">
-      <TopNav />
-      <KpiCards />
-      <div class="charts-row">
-        <TrendChart />
-        <DistributionChart />
-      </div>
-      <div class="bottom-row">
-        <FactoryTable />
-        <div class="bottom-right">
-          <AlertList />
-          <CreditChart />
+    <dv-border-box1 class="main-content-box">
+      <div class="main-content">
+        <TopNav />
+        <KpiCards />
+        <div class="charts-row">
+          <TrendChart />
+          <DistributionChart />
         </div>
+        <!-- <div class="bottom-row">
+            <FactoryTable />
+            <div class="bottom-right">
+              <AlertList />
+              <CreditChart />
+            </div>
+          </div> -->
       </div>
-    </div>
+    </dv-border-box1>
 
     <!-- 底部免责声明 -->
     <div class="disclaimer">
@@ -58,6 +60,8 @@ import CreditChart from './components/CreditChart.vue'
 import FactoryDetailModal from './components/FactoryDetailModal.vue'
 import AlertDetailModal from './components/AlertDetailModal.vue'
 import DataManageModal from './components/DataManageModal.vue'
+import { BorderBox1 as DvBorderBox1 } from '@kjgl77/datav-vue3'
+
 
 const store = useDashboardStore()
 const scale = ref(1)
@@ -143,6 +147,9 @@ onUnmounted(() => {
   position: relative;
   width: 1920px;
   height: 1080px;
+  width: 100%;
+  height: 100%;
+
   transform-origin: left top;
   background: radial-gradient(ellipse at 50% 0%, #0a1a3a 0%, #03081a 60%);
   overflow: hidden;
@@ -154,10 +161,10 @@ onUnmounted(() => {
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-rows: 60px 140px 420px 1fr;
+  grid-template-rows: 65px 140px 420px 1fr;
   grid-template-columns: 1fr;
-  gap: 12px;
-  padding: 10px 20px 10px 20px;
+  gap: 8px;
+  padding: 0px 10px 0px 10px;
   height: calc(100% - 30px);
 }
 
@@ -185,7 +192,6 @@ onUnmounted(() => {
 /* ========== 免责声明 ========== */
 .disclaimer {
   position: absolute;
-  bottom: 6px;
   left: 20px;
   z-index: 10;
   font-size: 11px;
@@ -193,10 +199,13 @@ onUnmounted(() => {
   opacity: 0.7;
 }
 
+.other-content {
+  height: calc(100% - 38px);
+}
+
 /* ========== 右下角时间 ========== */
 .corner-time {
   position: absolute;
-  bottom: 6px;
   right: 20px;
   z-index: 10;
   font-size: 11px;
@@ -218,7 +227,9 @@ onUnmounted(() => {
 .panel::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 2px;
   background: linear-gradient(90deg, transparent, var(--cyan), transparent);
   opacity: 0.5;
@@ -230,12 +241,25 @@ onUnmounted(() => {
   color: var(--cyan);
   margin-bottom: 8px;
   letter-spacing: 2px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 20px;
 }
 
 /* ========== 滚动条 ========== */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(0,150,255,0.3); border-radius: 2px; }
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 150, 255, 0.3);
+  border-radius: 2px;
+}
 
 /* ========== 加载动画 ========== */
 .loading-overlay {
@@ -253,4 +277,6 @@ onUnmounted(() => {
   font-size: 18px;
   letter-spacing: 4px;
 }
+
+.main-content-box {}
 </style>

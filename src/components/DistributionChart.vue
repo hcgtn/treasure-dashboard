@@ -1,14 +1,18 @@
 <template>
-  <div class="panel chart-panel">
-    <div class="panel-title">🍩 资产分布</div>
-    <div ref="chartRef" class="chart-body"></div>
-  </div>
+    <div class="panel-inner chart-panel">
+      <div class="panel-title">
+        <div>🍩 资产分布</div>
+         <dv-decoration3 style="width:250px;height:30px;"/>
+      </div>
+      <div ref="chartRef" class="chart-body"></div>
+    </div>
 </template>
 
 <script setup>
 import { ref, inject, onMounted, onUnmounted, computed, watch } from 'vue'
 import * as echarts from 'echarts'
 import { useDashboardStore } from '../stores/dashboard.js'
+import { Decoration3 as DvDecoration3 } from '@kjgl77/datav-vue3'
 
 const store = useDashboardStore()
 const chartRef = ref(null)
@@ -42,18 +46,8 @@ function initChart() {
       center: ['40%', '50%'],
       avoidLabelOverlap: false,
       itemStyle: { borderRadius: 4, borderColor: '#03081a', borderWidth: 3 },
-      label: {
-        show: true,
-        position: 'inside',
-        formatter: '{d}%',
-        fontSize: 13,
-        fontWeight: 'bold',
-        color: '#fff'
-      },
-      emphasis: {
-        label: { fontSize: 18, fontWeight: 'bold' },
-        scaleSize: 10
-      },
+      label: { show: true, position: 'inside', formatter: '{d}%', fontSize: 13, fontWeight: 'bold', color: '#fff' },
+      emphasis: { label: { fontSize: 18, fontWeight: 'bold' }, scaleSize: 10 },
       data: [
         { value: data[0].weight, name: '金水',
           itemStyle: { color: new echarts.graphic.LinearGradient(0,0,1,0,
@@ -98,24 +92,12 @@ onMounted(() => {
   window.addEventListener('resize', handleResize)
 })
 
-// 监听弹窗关闭：显示 loading 1 秒后更新图表
 watch(() => modals.value.dataManage, (val) => {
   if (!chart) return
   if (!val) {
-    // 弹窗关闭：显示 loading
-    chart.showLoading({
-      text: '更新中...',
-      color: '#00e5ff',
-      textColor: '#8899bb',
-      maskColor: 'rgba(3, 8, 26, 0.7)',
-      fontSize: 14
-    })
-    // 延迟 1 秒后隐藏 loading 并更新图表
+    chart.showLoading({ text: '更新中...', color: '#00e5ff', textColor: '#8899bb', maskColor: 'rgba(3, 8, 26, 0.7)', fontSize: 14 })
     clearTimeout(updateTimer)
-    updateTimer = setTimeout(() => {
-      chart.hideLoading()
-      updateChart(assetData.value)
-    }, 1000)
+    updateTimer = setTimeout(() => { chart.hideLoading(); updateChart(assetData.value) }, 1000)
   }
 })
 
@@ -127,6 +109,8 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.panel-inner { padding: 12px 16px; height: 100%; }
+.panel-title { font-size: 15px; font-weight: 600; color: var(--cyan); margin-bottom: 8px; letter-spacing: 2px; }
 .chart-panel { height: 100%; }
 .chart-body { width: 100%; height: calc(100% - 30px); }
 </style>
