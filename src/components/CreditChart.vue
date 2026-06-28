@@ -28,7 +28,11 @@ function buildOption(data) {
       trigger: 'axis',
       backgroundColor: 'rgba(6,20,50,0.95)',
       borderColor: 'rgba(0,150,255,0.5)',
-      textStyle: { color: '#e0ecff' }
+      textStyle: { color: '#e0ecff' },
+      formatter: (params) => {
+        const p = Array.isArray(params) ? params[0] : params
+        return `${p.name} 级<br/>${p.marker} ${p.value} <span style="color:#8899bb">家</span>`
+      }
     },
     grid: { left: '4%', right: '16%', top: '5%', bottom: '5%' },
     xAxis: {

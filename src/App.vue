@@ -1,13 +1,13 @@
 <template>
   <!-- 加载动画 -->
-  <div v-if="isLoading" class="loading-overlay">
+  <div v-if="isLoading || !showContent" class="loading-overlay" :class="{ 'fading-out': !isLoading && showContent === false }">
     <dv-loading>
       <div class="loading-text">加载中..</div>
     </dv-loading>
   </div>
 
   <!-- 主页面 -->
-  <div v-else class="dashboard-container" :style="{ transform: `scale(${scale})` }">
+  <div v-if="showContent" class="dashboard-container fade-in" :style="{ transform: `scale(${scale})` }">
     <!-- 背景层 -->
     <ParticleBg />
 
@@ -66,6 +66,7 @@ import { BorderBox1 as DvBorderBox1 } from '@kjgl77/datav-vue3'
 const store = useDashboardStore()
 const scale = ref(1)
 const isLoading = ref(true)
+const showContent = ref(false)
 
 const modals = ref({
   factory: false,
@@ -108,6 +109,9 @@ onMounted(() => {
   window.addEventListener('keydown', handleKeydown)
   setTimeout(() => {
     isLoading.value = false
+    setTimeout(() => {
+      showContent.value = true
+    }, 800)
   }, 500)
 })
 
@@ -270,6 +274,21 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   z-index: 9999;
+  transition: opacity 0.8s ease;
+}
+
+.loading-overlay.fading-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dashboard-container.fade-in {
+  animation: fadeIn 0.6s ease both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .loading-text {
