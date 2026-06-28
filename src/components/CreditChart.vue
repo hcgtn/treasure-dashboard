@@ -18,7 +18,7 @@ function initChart() {
   if (!chartRef.value) return
   chart = echarts.init(chartRef.value, 'dark')
   const data = store.creditDistribution
-  const colors = { 'AAA': '#ffd700', 'AA': '#4da6ff', 'A': '#00e676', 'B': '#ffc107', 'C': '#ff5252' }
+  const colors = { 'AAA': '#32c5e9', 'AA': '#a0e6b9', 'A': '#ffdc5c', 'B': '#ffa07f', 'C': '#fb7293' }
 
   chart.setOption({
     tooltip: {
