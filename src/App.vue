@@ -1,6 +1,6 @@
 <template>
   <!-- 加载动画 -->
-  <div v-if="isLoading || !showContent" class="loading-overlay" :class="{ 'fading-out': !isLoading && showContent === false }">
+  <div v-if="isLoading || !showContent" class="loading-overlay" :class="{ 'fading-out': !isLoading && showContent === false }" :style="{ backgroundImage: `url(${bgImg})` }">
     <dv-loading>
       <div class="loading-text">加载中..</div>
     </dv-loading>
@@ -47,6 +47,7 @@
 
 <script setup>
 import { ref, provide, onMounted, onUnmounted } from 'vue'
+import bgImg from '/bg.png'
 import { Loading as DvLoading } from '@kjgl77/datav-vue3'
 import { useDashboardStore } from './stores/dashboard.js'
 import ParticleBg from './components/ParticleBg.vue'
@@ -269,7 +270,10 @@ onUnmounted(() => {
 .loading-overlay {
   position: fixed;
   inset: 0;
-  background: url('/bg.png') center center / cover no-repeat, #03081a;
+  background-color: #03081a;
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
